@@ -50,7 +50,7 @@ entity cpsr_narrow_io is
     ready        : out std_logic;
     enable       : in  std_logic;
     finished     : out std_logic;
-    n            : in  unsigned(log2(MAX_N)-1 downto 0)
+    n            : in  unsigned(log2(MAX_N) downto 0)
     );
 
 end cpsr_narrow_io;
@@ -71,7 +71,8 @@ architecture rtl of cpsr_narrow_io is
       ready        : out std_logic;
       enable       : in  std_logic;
       finished     : out std_logic;
-      n            : in  integer);
+      n            : in  unsigned(log2(MAX_N) downto 0)
+		);
   end component;
 
   signal n_int       : integer;
@@ -120,7 +121,8 @@ begin  -- rtl
       ready    => ready,
       enable   => enable,
       finished => finished,
-      n        => n_int);
+      n        => n
+		);
 
 
 

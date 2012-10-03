@@ -5,8 +5,8 @@ use ieee.numeric_std.all;
 
 use ieee.math_real.all;
 
-library floatfixlib;
-use floatfixlib.fixed_pkg.all;
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
 
 use work.fft_lib.all;
 

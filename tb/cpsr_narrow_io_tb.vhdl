@@ -37,8 +37,8 @@ use ieee.numeric_std.all;
 use work.fft_lib.all;
 --use work.math_lib.all;
 
-library floatfixlib;
-use floatfixlib.fixed_pkg.all;
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
 
 -------------------------------------------------------------------------------
 
@@ -63,7 +63,7 @@ architecture tb of cpsr_narrow_io_tb is
       ready        : out std_logic;
       enable       : in  std_logic;
       finished     : out std_logic;
-      n            : in  unsigned(log2(MAX_N)-1 downto 0));
+      n            : in  unsigned(log2(MAX_N) downto 0));
   end component;
 
   -- component generics
@@ -79,7 +79,7 @@ architecture tb of cpsr_narrow_io_tb is
   signal ready        : std_logic;
   signal enable       : std_logic;
   signal finished     : std_logic;
-  signal n            : unsigned(log2(MAX_N)-1 downto 0);
+  signal n            : unsigned(log2(MAX_N) downto 0);
 
   signal simulation_active : std_logic := '0';
 

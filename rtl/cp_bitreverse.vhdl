@@ -47,7 +47,7 @@ entity cp_bitreverse is
     clk      : in  std_logic;
     addr_in  : in  integer;
     addr_out : out integer;
-    n        : in  integer
+    n        : in  unsigned(log2(MAX_N) downto 0)
     );
 
 end cp_bitreverse;
@@ -101,7 +101,7 @@ begin  -- rtkl
     
   end process p_dout;
   
---  dout_rev <= bitreverse(dout, n);
+ -- dout_rev <= bitreverse(dout, MAX_N);
   addr_out <= to_integer(unsigned(dout_rev));
   
 end rtl;

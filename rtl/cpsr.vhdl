@@ -36,8 +36,8 @@ use ieee.numeric_std.all;
 
 use work.fft_lib.all;
 
-library floatfixlib;
-use floatfixlib.fixed_pkg.all;
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
 
 
 entity cpsr is
@@ -56,7 +56,7 @@ entity cpsr is
     ready  : out std_logic;
     enable : in  std_logic;
     finished : out std_logic;
-    n      : in  integer
+    n      : in  unsigned(log2(MAX_N) downto 0)
 
     );
 
@@ -73,7 +73,7 @@ architecture rtl of cpsr is
     port (
       clk, reset_n : in  std_logic;
       enable       : in  std_logic;
-      n            : in  integer;
+      n            : in  unsigned(log2(MAX_N) downto 0);
       wr_addr      : out int_vec(3 downto 0);
       rd_addr      : out int_vec(3 downto 0);
       wr_en        : out std_logic_vector(3 downto 0);
@@ -88,7 +88,7 @@ architecture rtl of cpsr is
     port (
       clk, reset_n : in  std_logic;
       enable       : in  std_logic;
-      n            : in  integer;
+      n            : in  unsigned(log2(MAX_N) downto 0);
       base         : out integer;
       stride       : out integer;
       w_index      : out integer;
@@ -133,7 +133,7 @@ architecture rtl of cpsr is
       ys           : out complex_vector(3 downto 0);
       w_addr       : in  integer;
       mode         : in  sr_mode_t;
-      n            : in  integer);
+      n            : in  unsigned(log2(MAX_N) downto 0));
   end component;
 
   component cp_bitreverse
@@ -143,7 +143,8 @@ architecture rtl of cpsr is
       clk      : in  std_logic;
       addr_in  : in  integer;
       addr_out : out integer;
-      n        : in  integer);
+      n        : in  unsigned(log2(MAX_N) downto 0)
+		);
   end component;
   
   signal ram_rd_data : complex_vector(3 downto 0);

@@ -36,8 +36,8 @@ use ieee.numeric_std.all;
 
 use ieee.math_real.all;
 
-library floatfixlib;
-use floatfixlib.fixed_pkg.all;
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
 
 
 package fft_lib is
@@ -102,7 +102,7 @@ package fft_lib is
   constant SRFFT_MODE_DUAL_R2 : sr_mode_t := "11";
   
   function log2(A : integer) return integer;
-  
+   function log2(A : unsigned) return integer;
 end fft_lib;
 
 package body fft_lib is
@@ -165,6 +165,12 @@ package body fft_lib is
     return COMPLEX'( to_sfixed(X(COMPLEX_WIDTH-1 downto COMPLEX_WIDTH/2), WORD_HINDEX, WORD_LINDEX),
                      to_sfixed(X(COMPLEX_WIDTH/2-1 downto 0), WORD_HINDEX, WORD_LINDEX) );
   end to_complex;
+
+  function log2(A : unsigned) return integer is
+  begin
+
+	return(log2(to_integer(A)));
+  end function log2;
 
   function log2(A : integer) return integer is
   begin

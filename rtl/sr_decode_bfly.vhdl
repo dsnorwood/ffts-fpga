@@ -47,9 +47,10 @@ entity sr_decode_bfly is
 
   port (
 
+	clk : in std_logic;
     last_stage : in std_logic;
     
-    n_in            : in integer;
+    n_in            : in unsigned(log2(MAX_N) downto 0);
     pos_in, addr_in : in integer;
 
     base_out    : out integer;
@@ -100,7 +101,7 @@ architecture rtl of sr_decode_bfly is
 --   constant MODE_DOUBLE_RADIX2         : integer := 3;
 --   constant MODE_SPLITRADIX_AND_RADIX2 : integer := 2;
 --   constant MODE_SPLITRADIX            : integer := 0;
-
+	signal n_int : unsigned(log2(MAX_N) downto 0);
 begin  -- rtl 
 
   base_out    <= base_out_int;
@@ -111,9 +112,17 @@ begin  -- rtl
   base_out_int    <= base_decode(addr_in, pos_in);
   stride_out_int <= pos_in;
 -- stride_out_int <= pos_in;
-  w_index_out_int <= w_decode(addr_in, pos_in, n_in/4/N_CORES);
+  w_index_out_int <= w_decode(addr_in, pos_in, to_integer(n_int srl 2));--/4/N_CORES);
 
-  p_mode : process (w_index_out_int, last_stage, n_in, addr_in, pos_in)
+	process (clk) 
+	begin
+	if clk'event and clk='1' then
+		n_int <= n_in;--to_unsigned(MAX_N, n_int'length);
+		
+	end if;
+	end process;
+
+  p_mode : process (w_index_out_int, last_stage, n_int, addr_in, pos_in)
   begin  -- process p_mode
 
     

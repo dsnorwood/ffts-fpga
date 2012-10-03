@@ -38,8 +38,8 @@ use ieee.math_real.all;
 
 use work.fft_lib.all;
 
-library floatfixlib;
-use floatfixlib.fixed_pkg.all;
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
 
 --library ieee_proposed;
 --use ieee_proposed.fixed_pkg.all;
@@ -54,7 +54,7 @@ entity twiddle_rom is
     addr         : in  integer;
     w            : out complex;
     
-    n            : in  integer
+    n            : in  unsigned(log2(MAX_N) downto 0)
     );
 
 end twiddle_rom;
@@ -87,13 +87,13 @@ architecture rtl of twiddle_rom is
 
   signal w_a, w_b : word_t;
 
-  signal cur_n : integer;
+  signal cur_n : unsigned(log2(MAX_N) downto 0);
 
   signal addr_int : unsigned(log2(MAX_N/4)-1 downto 0);
  
   signal shiftamt : integer;
   
-  signal n_div_4 : unsigned(log2(MAX_N/4)-1 downto 0);
+  signal n_div_4 : unsigned(log2(MAX_N) downto 0);
   
   constant log2_max_n : integer := log2(MAX_N);
   
@@ -102,7 +102,7 @@ begin  -- rtl
   p_n_reg : process (clk, reset_n)
   begin
     if reset_n='0' then
-      cur_n <= 0;
+      cur_n <= to_unsigned(0, cur_n'length);
 
     elsif clk'event and clk = '1' then     -- rising clock edge
       cur_n <= n;
@@ -115,7 +115,7 @@ begin  -- rtl
     shiftamt <= log2_max_n - log2(cur_n);
 
     addr_int <= to_unsigned(addr, log2(MAX_N/4)) sll (log2_max_n - log2(cur_n));
-    n_div_4 <= to_unsigned(cur_n, n_div_4'length) srl 2;
+    n_div_4 <= cur_n srl 2;
 
   end process p_addr;
 

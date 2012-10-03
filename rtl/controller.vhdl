@@ -36,8 +36,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library floatfixlib;
-use floatfixlib.fixed_pkg.all;
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
 
 use work.fft_lib.all;
 
@@ -53,7 +53,7 @@ entity controller is
     clk, reset_n : in std_logic;
     enable       : in std_logic;
 
-    n : in integer;
+    n : in unsigned(log2(MAX_N) downto 0);
 
     wr_addr : out int_vec(3 downto 0);
     rd_addr : out int_vec(3 downto 0);
@@ -79,7 +79,7 @@ architecture rtl of controller is
     port (
       clk, reset_n : in  std_logic;
       enable       : in  std_logic;
-      n            : in  integer;
+      n            : in  unsigned(log2(MAX_N) downto 0);
       base         : out integer;
       stride       : out integer;
       w_index      : out integer;
@@ -108,7 +108,7 @@ architecture rtl of controller is
 
   signal clk_int : std_logic;
 
-  signal eof_delay_vec : std_logic_vector(MEM_WR_DELAYS+MEM_RD_DELAYS+BFLY_DELAYS-1 downto 0);
+  signal eof_delay_vec : std_logic_vector(MEM_WR_DELAYS+MEM_RD_DELAYS+BFLY_DELAYS downto 0);
   signal eof_int       : std_logic;
 
   signal processing : std_logic;
@@ -228,12 +228,12 @@ begin  -- rtl
   begin  -- process p_eof_delay
     if clk'event and clk = '1' then     -- rising clock edge
       eof_delay_vec(0) <= eof_int;
-      for i in 1 to MEM_WR_DELAYS+MEM_RD_DELAYS+BFLY_DELAYS-1 loop
+      for i in 1 to MEM_WR_DELAYS+MEM_RD_DELAYS+BFLY_DELAYS loop
         eof_delay_vec(i) <= eof_delay_vec(i-1);
       end loop;  -- i
     end if;
   end process p_eof_delay;
 
-  eof <= eof_delay_vec(MEM_WR_DELAYS+MEM_RD_DELAYS+BFLY_DELAYS-1);
+  eof <= eof_delay_vec(MEM_WR_DELAYS+MEM_RD_DELAYS+BFLY_DELAYS);
   
 end rtl;

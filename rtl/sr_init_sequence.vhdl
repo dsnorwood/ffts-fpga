@@ -49,7 +49,7 @@ entity sr_init_sequence is
   port (
     clk, reset_n : in  std_logic;
     clk_en : in std_logic;
-    n            : in  integer;
+    n            : in  unsigned(log2(MAX_N) downto 0);
     rd_en        : in  std_logic;
     dout         : out integer;
     valid        : out std_logic;
@@ -92,12 +92,11 @@ architecture rtl of sr_init_sequence is
 --     return rval;
 --   end perm_addr;
 
-  signal cur     : integer;
-  signal counter : integer;
+  signal cur     : unsigned(log2(MAX_N) downto 0);
+  signal counter : unsigned(log2(MAX_N) downto 0);
 
-  signal n_div_4 : integer;
-
-  signal max_count : integer;
+  signal n_div_4   : unsigned(log2(MAX_N) downto 0);
+  signal max_count : unsigned(log2(MAX_N) downto 0);
 
   signal running : std_logic;
 
@@ -112,14 +111,22 @@ begin  -- rtl
 
   valid_int <= '1';
 
-  n_div_4 <= to_integer(to_unsigned(n, log2(MAX_N)+1) srl (2 + log2(N_CORES)));
+  process (clk) 
+  begin
+    if clk'event and clk='1' then
+    n_div_4   <= n srl (2 + log2(N_CORES)); 
+    max_count <= (n srl 2) - to_unsigned(N_CORES - THIS_CORE, n'length);
+  end if;
+  end process;
+
+  
 
 -- dout <= to_integer(to_unsigned(cur, log2(MAX_N/4)) sll log2(N_CORES));
 
-  max_count <= to_integer(to_unsigned(n, log2(MAX_N)+1) srl 2) - (N_CORES - THIS_CORE);
+ 
 
 --  dout <= to_integer(unsigned( perm_addr(std_logic_vector(to_unsigned(cur, UNSIGNED_MAX))) ));
-  dout <= cur;
+  dout <= to_integer(cur);
   
   p_sync_int : process (counter)
   begin  -- process p_sync_int
@@ -133,12 +140,13 @@ begin  -- rtl
   p_seq : process (clk, reset_n)
   begin  -- process p_seq
     if reset_n = '0' then               -- asynchronous reset (active low)
-      cur     <= THIS_CORE;
+      cur     <= to_unsigned(THIS_CORE, cur'length);
 -- sync_int <= '1';
       running <= '0';
-      counter <= PHASE_OFFSET;
-    elsif clk'event and clk = '1' and clk_en='1' then  -- rising clock edge
+      counter <= to_unsigned(PHASE_OFFSET, counter'length);
+    elsif clk'event and clk = '1'  then  -- rising clock edge
 
+if clk_en='1' then
       if running = '0' then
         if rd_en = '1' then
           running <= '1';
@@ -152,13 +160,13 @@ begin  -- rtl
 
       if running = '1' or rd_en = '1' then
         if cur = max_count then
-          cur       <= THIS_CORE;
-          counter   <= PHASE_OFFSET;
+          cur       <= to_unsigned(THIS_CORE, cur'length);
+          counter   <= to_unsigned(PHASE_OFFSET, counter'length);
 -- sync_int <= '1';
         else
-          cur       <= cur + N_CORES;
+          cur       <= cur + to_unsigned(N_CORES, cur'length);
           if counter = n_div_4-1 then
-            counter <= 0;
+            counter <= to_unsigned(0, counter'length);
           else
             counter <= counter + 1;
           end if;
@@ -166,7 +174,7 @@ begin  -- rtl
 -- sync_int <= '0';
         end if;
       end if;
-
+end if;
     end if;
   end process p_seq;
 

@@ -73,8 +73,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library floatfixlib;
-use floatfixlib.fixed_pkg.all;
+library ieee_proposed;
+use ieee_proposed.fixed_pkg.all;
 
 use work.fft_lib.all;
 
@@ -89,7 +89,7 @@ entity subtransform is
     w_addr       : in  integer;
     mode         : in  sr_mode_t;
 
-    n : in integer
+    n : in unsigned(log2(MAX_N) downto 0)
 
     );
 
@@ -112,7 +112,8 @@ architecture rtl of subtransform is
       clk, reset_n : in  std_logic;
       addr         : in  integer;
       w            : out complex;
-      n            : in  integer);
+      n            : in  unsigned(log2(MAX_N) downto 0)
+		);
   end component;
   
   constant MULT_DELAYS : integer := 4;
