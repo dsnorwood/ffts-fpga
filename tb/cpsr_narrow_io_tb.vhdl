@@ -136,8 +136,11 @@ begin  -- tb
       wait until clk'event and clk = '1';
       wait for 2 ns;
 
-        wr_data <= CMPLX(real(i), 0.0);
-
+      if i=1 then
+        wr_data <= CMPLX(256.0, 0.0);
+    else
+        wr_data <= CMPLX(0.0, 0.0);      
+    end if;
       wr_addr <= to_unsigned(i, wr_addr'length);
       wr_en   <= '1';
 

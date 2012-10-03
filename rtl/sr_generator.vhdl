@@ -105,6 +105,7 @@ architecture rtl of sr_generator is
     port (
       clk, reset_n : in  std_logic;
       clk_en       : in  std_logic;
+      clk_en_adv   : in std_logic;
       n            : in  unsigned(log2(MAX_N) downto 0);
       rd_en        : in  std_logic;
       dout         : out integer;
@@ -214,7 +215,7 @@ architecture rtl of sr_generator is
   signal mode_int    : sr_mode_t;
   signal w_index_int : integer;
 
-  signal last_stage_pulse : std_logic;
+  signal last_stage_pulse, last_stage_pulse_r : std_logic;
 
   signal init_sync_pulse : std_logic;
 
@@ -222,7 +223,7 @@ architecture rtl of sr_generator is
 
   signal cur_stage_sync : std_logic;
 
-  signal clk_en : std_logic;
+  signal clk_en, clk_en_adv : std_logic;
 
   signal counter : unsigned(UNSIGNED_MAX-1 downto 0);
 
@@ -333,6 +334,7 @@ begin-- rtl
   begin  -- process p_clken
     if reset_n = '0' then               -- asynchronous reset (active low)
       clk_en <= '1';
+      clk_en_adv <= '1';
     elsif clk'event and clk = '1' then  -- rising clock edge
 
       if clk_en = '0' then
@@ -340,9 +342,19 @@ begin-- rtl
           clk_en <= '1';
         end if;
       elsif bfly_muxed.addr = 0 and to_integer(counter) /= 0 then
-        clk_en <= '0';
+        clk_en     <= '0';
       else
-        clk_en <= '1';
+        clk_en     <= '1';
+      end if;
+
+      if clk_en_adv = '0' then
+        if counter = 0 then
+          clk_en_adv <= '1';
+        end if;
+      elsif bfly_muxed.addr = 0 and to_integer(counter) /= 0 then
+        clk_en_adv     <= '0';
+      else
+        clk_en_adv     <= '1';
       end if;
 
     end if;
@@ -446,6 +458,7 @@ begin-- rtl
   p_init_rd_en : process (state)
   begin  -- process p_init_rd_en
     if state = INIT_SEQ0 or state = INIT_SEQ1 then
+--    if state=RUN_FIFO and fifo_finish_pulse='1' then
       init_rd_en <= '1';
     else
       init_rd_en <= '0';
@@ -453,9 +466,10 @@ begin-- rtl
   end process p_init_rd_en;
 
 
-  p_half_odd_rd_en : process (state)
+  p_half_odd_rd_en : process (state, fifo_finish_pulse)
   begin  -- process p_half_odd_seq_rd_en
-    if state = HALF_ODD_SEQ0 or state = HALF_ODD_SEQ1 then
+--    if state = HALF_ODD_SEQ0 or state = HALF_ODD_SEQ1 then
+    if state=RUN_FIFO and fifo_finish_pulse='1' then
       half_odd_rd_en <= '1';
     else
       half_odd_rd_en <= '0';
@@ -466,15 +480,17 @@ begin-- rtl
   begin  -- process p_last_stage_pulse
     if reset_n = '0' then
       last_stage_pulse <= '0';
+      last_stage_pulse_r <= '0';
     elsif clk'event and clk = '1' then
-      if state_r0 = HALF_ODD_SEQ0 or state_r0 = HALF_ODD_SEQ1 or (state_r1 = HALF_ODD_SEQ1) then
+--      if state_r0 = HALF_ODD_SEQ0 or state_r0 = HALF_ODD_SEQ1 or (state_r1 = HALF_ODD_SEQ1) then
+      if state_r0 = HALF_ODD_SEQ0 or state_r0 = HALF_ODD_SEQ1 then
         last_stage_pulse <= '1';
               
       else
         last_stage_pulse <= '0';
                       
       end if;
-
+      last_stage_pulse_r <= last_stage_pulse;
     end if;
   end process p_last_stage_pulse;
 
@@ -562,6 +578,7 @@ begin-- rtl
       clk     => clk,
       reset_n => reset_n,
       clk_en  => clk_en,
+      clk_en_adv => clk_en_adv,
       n       => n_int,
       rd_en   => half_odd_rd_en,
       dout    => half_odd_addr,
@@ -631,7 +648,7 @@ begin-- rtl
       THIS_CORE => 0)
     port map (
 		clk         => clk,
-      last_stage  => last_stage_pulse,
+      last_stage  => last_stage_pulse_r,
       n_in        => n_int,
       pos_in      => to_integer(bfly_muxed_r.pos),
       addr_in     => to_integer(bfly_muxed_r.addr),
