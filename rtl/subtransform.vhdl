@@ -143,11 +143,13 @@ architecture rtl of subtransform is
   signal mult2_b_rel, mult2_b_img : std_logic_vector(17 downto 0);
   
 begin  -- rtl
+w_addr_int <= w_addr;
+     
 
   p_reg_inputs : process (clk)
   begin  -- process p_w_addr_reg     
     if clk'event and clk = '1' then     -- rising clock edge
-      w_addr_int <= w_addr;
+ 
       xs_int     <= xs;
       mode_int <= mode;
     end if;
@@ -190,7 +192,8 @@ begin  -- rtl
       stage2(3) <= stage1(2) + (stage1(3)*CBASE_i);
 
       w2 <= w1;
-
+     
+      
       xs_int_r2 <= xs_int_r1;
       stage1_r1 <= stage1;
       mode_int_r2 <= mode_int_r1;
@@ -221,8 +224,8 @@ begin  -- rtl
 --       y       => e
 --       );
 
-  w2_conj <= CONJ(w2);
   
+   w2_conj <= CONJ(w2);
   mult2_b_rel <= to_slv(w2_conj.re);
   mult2_b_img <= to_slv(w2_conj.im);
   

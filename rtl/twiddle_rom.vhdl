@@ -85,18 +85,19 @@ architecture rtl of twiddle_rom is
 
   signal ram : ram_t := generate_twiddles(MAX_N);
 
-  signal w_a, w_b : word_t;
+  signal w_a, w_b, w_a0, w_b0 : word_t;
 
   signal cur_n : unsigned(log2(MAX_N) downto 0);
 
-  signal addr_int : unsigned(log2(MAX_N/4)-1 downto 0);
+  signal addr_int, addr_int_r : unsigned(log2(MAX_N/4)-1 downto 0);
  
-  signal shiftamt : integer;
+  signal shiftamt : unsigned(log2(MAX_N) downto 0);
   
-  signal n_div_4 : unsigned(log2(MAX_N) downto 0);
+  signal n_div_4, addr_b : unsigned(log2(MAX_N) downto 0);
   
   constant log2_max_n : integer := log2(MAX_N);
   
+  signal addr_probe : integer;
 begin  -- rtl
 
   p_n_reg : process (clk, reset_n)
@@ -106,35 +107,52 @@ begin  -- rtl
 
     elsif clk'event and clk = '1' then     -- rising clock edge
       cur_n <= n;
+      addr_b <= (n_div_4 sll (log2_max_n - log2(cur_n))) ;
+      
+      shiftamt <= to_unsigned(log2_max_n, shiftamt'length) - log2(cur_n);
+      n_div_4 <= cur_n srl 2;
     end if;
   end process p_n_reg;
 
-  p_addr: process (cur_n, addr)
+  p_addr: process (shiftamt, addr)
   begin  -- process p_addr
 
-    shiftamt <= log2_max_n - log2(cur_n);
+   
 
-    addr_int <= to_unsigned(addr, log2(MAX_N/4)) sll (log2_max_n - log2(cur_n));
-    n_div_4 <= cur_n srl 2;
+    addr_int <= to_unsigned(addr, log2(MAX_N/4)) sll to_integer(shiftamt);
+    
 
   end process p_addr;
 
-  w <= COMPLEX'(w_a, resize(-w_b, w_b));
-
+addr_probe <= to_integer( unsigned( std_logic_vector(addr_b - addr_int) and std_logic_vector(to_unsigned(MAX_N/4-1, addr_b'length)) ) );
+  
+  
+  
   p_ram : process (clk)
   begin
     if clk'event and clk = '1' then
-      w_a <= ram(to_integer(addr_int));
-
-      if addr_int = 0 then
-        w_b <= to_sfixed(0, w_b);
+      w_a0 <= ram(to_integer(addr_int));
+      
+      w_b0 <= ram(to_integer( unsigned( std_logic_vector(addr_b - addr_int) and std_logic_vector(to_unsigned(MAX_N/4-1, addr_b'length))) )); 
+      addr_int_r <= addr_int;
+      if addr_int_r = 0 then
+        w <= COMPLEX'(w_a0, resize(to_sfixed(0, w_b), w_b));
       else
-
-        w_b <= ram(to_integer( (n_div_4 sll (log2_max_n - log2(cur_n))) - addr_int ));
-
+        w <= COMPLEX'(w_a0, resize(-w_b0, w_b));
       end if;
+      
+  --    w_a <= ram(to_integer(addr_int));
+      
+  --    if addr_int = 0 then
+  --      w_b <= to_sfixed(0, w_b);
+  --    else
+  --      w_b <= ram(to_integer( addr_b - addr_int )); 
+  --    end if;
 
-
+      
+     -- w <= COMPLEX'(w_a, resize(-w_b, w_b));
+      --w_a <= w_a0;
+   
     end if;
   end process p_ram;
 

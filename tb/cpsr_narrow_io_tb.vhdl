@@ -126,7 +126,7 @@ begin  -- tb
     wr_addr <= to_unsigned(0, wr_addr'length);
     wr_en  <= '0';
     enable <= '0';
-    n      <= to_unsigned(128, n'length);
+    n      <= to_unsigned(1024, n'length);
 
 
     wait until simulation_active = '1';
@@ -137,7 +137,7 @@ begin  -- tb
       wait for 2 ns;
 
       if i=1 then
-        wr_data <= CMPLX(256.0, 0.0);
+        wr_data <= CMPLX(2048.0, 0.0);
     else
         wr_data <= CMPLX(0.0, 0.0);      
     end if;

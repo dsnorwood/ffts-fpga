@@ -93,7 +93,7 @@ architecture rtl of sr_half_odd_seq_ram is
     return count-1;
   end sequence_length;
 
-  type ram_t is array (0 to sequence_length(MAX_N/4)-1) of unsigned(log2(MAX_N)-1 downto 0);
+  type ram_t is array (0 to sequence_length(MAX_N/4)) of unsigned(log2(MAX_N)-1 downto 0);
 
 
   impure function generate_half_odd_sequence (N : in integer)
@@ -111,7 +111,7 @@ architecture rtl of sr_half_odd_seq_ram is
     return temp_ram;
   end function;
 
-  signal ram : ram_t := generate_half_odd_sequence(sequence_length(MAX_N/4));
+  signal ram : ram_t := generate_half_odd_sequence(sequence_length(MAX_N/4)+1);
 
   function swap_one_zero (X : integer) return integer is
 
@@ -144,7 +144,7 @@ architecture rtl of sr_half_odd_seq_ram is
 
   constant THIS_CORE_INT : integer := THIS_CORE;  --swap_one_zero(THIS_CORE);
   
-  signal n_div_4_mod : unsigned(log2(MAX_N) downto 0);
+  signal n_div_4_mod : unsigned(log2(MAX_N)-1 downto 0);
   
 begin  -- rtl
 
@@ -152,9 +152,9 @@ begin  -- rtl
   begin
     if clk'event and clk='1' then
       if to_unsigned(log2(n), log2(MAX_N))(0)='0' then
-        n_div_4_mod <= to_unsigned(n_div_4, n_div_4_mod'length) - to_unsigned(3, n_div_4_mod'length);    
+        n_div_4_mod <= to_unsigned(n_div_4, n_div_4_mod'length) - to_unsigned(7, n_div_4_mod'length);    
       else
-        n_div_4_mod <= to_unsigned(n_div_4, n_div_4_mod'length) - to_unsigned(1, n_div_4_mod'length);    
+        n_div_4_mod <= to_unsigned(n_div_4, n_div_4_mod'length) - to_unsigned(5, n_div_4_mod'length);    
       end if; 
     end if;
   end process;
@@ -231,13 +231,15 @@ begin  -- rtl
   --valid     <= '1';
   --valid_int <= '1';
 
-  p_reset_pulse : process(data_int, n_div_4_mod)
+  p_reset_pulse : process(clk)
   begin  -- process p_reset_pulse
-    if to_integer(data_int) = n_div_4_mod then
+    if clk'event and clk='1' then 
+    if data_int = n_div_4_mod then
       reset_pulse <= '1';
     else
       reset_pulse <= '0';
     end if;
+  end if;
   end process p_reset_pulse;
 
   p_seq : process (clk, reset_n)
