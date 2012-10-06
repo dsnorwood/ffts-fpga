@@ -196,7 +196,7 @@ begin  -- rtl
   end process p_bfly_delays;
 
   mode    <= mode_delay_vec(MEM_RD_DELAYS-1);
-  w_index <= w_index_delay_vec(MEM_RD_DELAYS-1);
+  w_index <= w_index_delay_vec(MEM_RD_DELAYS-2);
 
   p_valid_int : process (mode_int, processing)
   begin  -- process p_valid_int

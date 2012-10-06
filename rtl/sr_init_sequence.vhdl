@@ -92,18 +92,18 @@ architecture rtl of sr_init_sequence is
 --     return rval;
 --   end perm_addr;
 
-  signal cur     : unsigned(log2(MAX_N) downto 0);
-  signal counter : unsigned(log2(MAX_N) downto 0);
+  signal cur     : unsigned(log2(MAX_N/4) downto 0);
+  signal counter : unsigned(log2(MAX_N/4) downto 0);
 
-  signal n_div_4   : unsigned(log2(MAX_N) downto 0);
-  signal max_count : unsigned(log2(MAX_N) downto 0);
+  signal n_div_4   : unsigned(log2(MAX_N/4) downto 0);
+  signal max_count : unsigned(log2(MAX_N/4) downto 0);
 
   signal running : std_logic;
 
   signal sync_int  : std_logic;
   signal valid_int : std_logic;
 
-  constant UNSIGNED_MAX : integer := log2(MAX_N);
+  constant UNSIGNED_MAX : integer := log2(MAX_N/4);
 begin  -- rtl
 
   sync  <= sync_int;
@@ -114,8 +114,8 @@ begin  -- rtl
   process (clk) 
   begin
     if clk'event and clk='1' then
-    n_div_4   <= n srl (2 + log2(N_CORES)); 
-    max_count <= (n srl 2) - to_unsigned(N_CORES - THIS_CORE, n'length);
+    n_div_4   <= resize(n srl (2 + log2(N_CORES)), n_div_4'length); 
+    max_count <= resize((n srl 2) - to_unsigned(N_CORES - THIS_CORE, n'length), max_count'length);
   end if;
   end process;
 

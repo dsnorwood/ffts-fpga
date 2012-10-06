@@ -89,7 +89,7 @@ architecture rtl of twiddle_rom is
 
   signal cur_n : unsigned(log2(MAX_N) downto 0);
 
-  signal addr_int, addr_int_r : unsigned(log2(MAX_N/4)-1 downto 0);
+  signal addr_int, addr_int_r, addr_int_sub : unsigned(log2(MAX_N/4)-1 downto 0);
  
   signal shiftamt : unsigned(log2(MAX_N) downto 0);
   
@@ -111,6 +111,9 @@ begin  -- rtl
       
       shiftamt <= to_unsigned(log2_max_n, shiftamt'length) - log2(cur_n);
       n_div_4 <= cur_n srl 2;
+      
+      addr_int     <= to_unsigned(addr, log2(MAX_N/4)) sll to_integer(shiftamt);
+      addr_int_sub <= resize(addr_b - (to_unsigned(addr, addr_b'length) sll to_integer(shiftamt)), addr_int_sub'length);
     end if;
   end process p_n_reg;
 
@@ -119,7 +122,7 @@ begin  -- rtl
 
    
 
-    addr_int <= to_unsigned(addr, log2(MAX_N/4)) sll to_integer(shiftamt);
+    
     
 
   end process p_addr;
@@ -133,12 +136,14 @@ addr_probe <= to_integer( unsigned( std_logic_vector(addr_b - addr_int) and std_
     if clk'event and clk = '1' then
       w_a0 <= ram(to_integer(addr_int));
       
-      w_b0 <= ram(to_integer( unsigned( std_logic_vector(addr_b - addr_int) and std_logic_vector(to_unsigned(MAX_N/4-1, addr_b'length))) )); 
+--      w_b0 <= ram(to_integer( unsigned( std_logic_vector(addr_b - addr_int) and std_logic_vector(to_unsigned(MAX_N/4-1, addr_b'length))) )); 
+      w_b0 <= ram(to_integer(addr_int_sub )); 
       addr_int_r <= addr_int;
       if addr_int_r = 0 then
         w <= COMPLEX'(w_a0, resize(to_sfixed(0, w_b), w_b));
       else
-        w <= COMPLEX'(w_a0, resize(-w_b0, w_b));
+        --w <= COMPLEX'(w_a0, resize(-w_b0, w_b));
+        w <= COMPLEX'(w_a0, w_b0);
       end if;
       
   --    w_a <= ram(to_integer(addr_int));

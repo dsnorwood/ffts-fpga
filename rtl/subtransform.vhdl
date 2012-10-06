@@ -105,6 +105,14 @@ architecture rtl of subtransform is
       P_rel, P_img : out std_logic_vector(47 downto 0));
   end component;
   
+  component complex_conj_multiplier
+    port (
+      clk, reset_n : in  std_logic;
+      A_rel, A_img : in  std_logic_vector(17 downto 0);
+      B_rel, B_img : in  std_logic_vector(17 downto 0);
+      P_rel, P_img : out std_logic_vector(47 downto 0));
+  end component;
+  
   component twiddle_rom
     generic (
       MAX_N : integer);
@@ -143,13 +151,13 @@ architecture rtl of subtransform is
   signal mult2_b_rel, mult2_b_img : std_logic_vector(17 downto 0);
   
 begin  -- rtl
-w_addr_int <= w_addr;
+
+  w_addr_int <= w_addr;
      
 
   p_reg_inputs : process (clk)
   begin  -- process p_w_addr_reg     
     if clk'event and clk = '1' then     -- rising clock edge
- 
       xs_int     <= xs;
       mode_int <= mode;
     end if;
@@ -191,6 +199,13 @@ w_addr_int <= w_addr;
       stage2(2) <= stage1(2) - (stage1(3)*CBASE_i);
       stage2(3) <= stage1(2) + (stage1(3)*CBASE_i);
 
+
+      --stage2(2).re <= resize(stage1(2).re + stage1(3).im, stage2(2).re'high, stage2(2).re'low);
+      --stage2(2).im <= resize(stage1(2).im - stage1(3).re, stage2(2).im'high, stage2(2).im'low);
+      
+      --stage2(3).re <= resize(stage1(2).re - stage1(3).im, stage2(3).re'high, stage2(3).re'low);
+      --stage2(3).im <= resize(stage1(2).im + stage1(3).re, stage2(3).im'high, stage2(3).im'low);
+      
       w2 <= w1;
      
       
@@ -201,7 +216,7 @@ w_addr_int <= w_addr;
 
   end process p_second_stage;
   
-  mult1: complex_multiplier
+  mult1: complex_conj_multiplier
     port map (
         clk     => clk,
         reset_n => reset_n,
@@ -225,9 +240,9 @@ w_addr_int <= w_addr;
 --       );
 
   
-   w2_conj <= CONJ(w2);
-  mult2_b_rel <= to_slv(w2_conj.re);
-  mult2_b_img <= to_slv(w2_conj.im);
+ --  w2_conj <= CONJ(w2);
+ -- mult2_b_rel <= to_slv(w2_conj.re);
+ -- mult2_b_img <= to_slv(w2_conj.im);
   
   mult2: complex_multiplier
     port map (
@@ -235,8 +250,8 @@ w_addr_int <= w_addr;
         reset_n => reset_n,
         A_rel   => to_slv(stage2(3).re),
         A_img   => to_slv(stage2(3).im),
-        B_rel   => mult2_b_rel,
-        B_img   => mult2_b_img,
+        B_rel   => to_slv(w2.re),
+        B_img   => to_slv(w2.im),
         P_rel   => f_rel,
         P_img   => f_img
         );
